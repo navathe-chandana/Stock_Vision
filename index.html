@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Vision - Stock Price Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <style>
+    
+        /* Basic styles for the prediction tool */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        
+        .navbar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .logo img {
+            width: 36px;
+            height: 36px;
+            margin-right: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-links a.active {
+            background-color: #3498db;
+        }
+        
+        .nav-links a:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin: 3rem auto;
+            position: relative;
+            max-width: 1200px;
+            padding: 0 2rem;
+
+        
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        
+        .prediction-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #7f8c8d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+        
+        .tab-content {
+            padding: 30px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .chart-container {
+            height: 400px;
+            margin: 30px 0;
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #95a5a6;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+tr.highlighted {
+    background-color: #d4f1ff;
+    font-weight: bold;
+}
+body, html {
+        margin: 0;
+        padding: 0;
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        font-size: 18px;
+        width: 100%;
+        background-color: #2c3e50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 50px;
+        box-sizing: border-box;
+    }
+
+    .nav-links a {
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+    }
+
+    .nav-links a:hover {
+        text-decoration: underline;
+    }
+
+    .container, .section {
+        padding-top: 80px; /* Give space for fixed navbar */
+    }
+    
+    #companies-section h2,
+    #about-section h2,
+    #team-section h2 {
+        font-size: 32px;
+    }
+
+    .collapsible {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .team-name {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .team-role {
+        font-size: 18px;
+    }
+
+        .trend-indicator {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .trend-indicator.up {
+            color: #27ae60;
+            background-color: #eafaf1;
+        }
+        
+        .trend-indicator.down {
+            color: #e74c3c;
+            background-color: #fdedeb;
+        }
+        
+        .footer {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .hide {
+            display: none;
+        }
+        .section {
+            display: none;
+            padding: 50px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 40px auto;
+            max-width: 1100px;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .card p, .card li {
+            color: #34495e;
+            font-size: 16px;
+        }
+
+        .team-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .team-member {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .team-avatar {
+            background-color: #3498db;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+
+        .company-logo {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .company-details h3 {
+            margin: 5px 0;
+        }
+
+        .collapsible {
+            background: #f4f6f9;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 10px 15px;
+            border-left: 3px solid #3498db;
+            background: #fdfdfd;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+
+        /* Analyst Opinion Styles */
+.analyst-opinion-container {
+    margin: 20px auto;
+    width: 100%;
+    max-width: 800px;
+}
+
+.analyst-opinion-box {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.opinion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.recommendation-badge {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 5px;
+    color: white;
+}
+
+.recommendation-badge.buy {
+    background-color: #27ae60;
+}
+
+.recommendation-badge.sell {
+    background-color: #e74c3c;
+}
+
+.recommendation-badge.hold {
+    background-color: #f39c12;
+}
+
+.confidence-badge {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: white;
+}
+
+.confidence-badge.high {
+    background-color: #3498db;
+}
+
+.confidence-badge.medium {
+    background-color: #9b59b6;
+}
+
+.confidence-badge.low {
+    background-color: #95a5a6;
+}
+
+.opinion-chart {
+    display: flex;
+    height: 40px;
+    width: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.opinion-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    transition: width 0.5s ease;
+}
+
+.opinion-bar.buy {
+    background-color: #27ae60;
+}
+
+.opinion-bar.hold {
+    background-color: #f39c12;
+}
+
+.opinion-bar.sell {
+    background-color: #e74c3c;
+}
+
+.opinion-label {
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.opinion-summary {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #2c3e50;
+    margin-top: 15px;
+}
+
+.analyst-placeholder {
+    text-align: center;
+    color: #95a5a6;
+    padding: 20px;
+    font-style: italic;
+}
+        
+        
+    </style>
+         
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">📈 Stock Vision </div>
+
+        <div class="nav-links">
+            <a href="#predict-section" class="active">Predict</a>
+            <a href="#companies-section">Companies</a>
+            <a href="#about-section">About Us</a>
+            <a href="#team-section">Our Team</a>
+
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Stock Price Prediction</h1>
+            <p>Get accurate price forecasts for your favorite stocks</p>
+        </div>
+        
+        <div class="prediction-card">
+            <div class="tabs">
+                <div class="tab active" data-tab="range">Prediction Range</div>
+                <div class="tab" data-tab="date">Specific Date</div>
+            </div>
+            
+            <div class="tab-content" id="range-tab">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticker-range">Select Ticker:</label>
+                        <select id="ticker-range">
+                            <option value="">Select a stock</option>
+                            <option value="AAPL">Apple (AAPL)</option>
+                            <option value="MSFT">Microsoft (MSFT)</option>
+                            <option value="GOOGL">Alphabet (GOOGL)</option>
+                            <option value="AMZN">Amazon (AMZN)</option>
+                            <option value="META">Meta (META)</option>
+                            <option value="TSLA">Tesla (TSLA)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time-range">Prediction Range:</label>
+                        <select id="time-range">
+                            <option value="">Select time period</option>
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="9">9 Months</option>
+                        </select>
+                    </div>
+                    
+                    <button id="generate-range" class="btn">Generate Prediction</button>
+                </div>
+            </div>
+            
+            <div class="tab-content hide" id="date-tab">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticker-date">Select Ticker:</label>
+                        <select id="ticker-date">
+                            <option value="">Select a stock</option>
+                            <option value="AAPL">Apple (AAPL)</option>
+                            <option value="MSFT">Microsoft (MSFT)</option>
+                            <option value="GOOGL">Alphabet (GOOGL)</option>
+                            <option value="AMZN">Amazon (AMZN)</option>
+                            <option value="META">Meta (META)</option>
+                            <option value="TSLA">Tesla (TSLA)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="specific-date">Select Date:</label>
+                        <input type="date" id="specific-date">
+                    </div>
+                    
+                    <button id="generate-date" class="btn">Generate Prediction</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-placeholder">Select a stock and timeframe to see predictions</div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Predicted Price</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody id="predictionTableBody">
+                <!-- Prediction data will be populated here -->
+            </tbody>
+        </table> 
+
+
+        <!-- Analyst Opinion Section will be injected here -->
+<div id="opinion-section"></div>
+
+
+
+
+ <div class="footer">
+            <p>Stock Price Predictor © 2025 | Powered by AI Forecasting</p>
+            <p>Disclaimer: Past performance is not indicative of future results. Investment decisions should not be based solely on these predictions.</p>
+        </div>
+    </div>
+    <div id="companies-section" class="section">
+        <div class="card">
+            <h2>Company Information</h2>
+            <p>Click on a company to learn more about their market position and financial performance.</p>
+    
+            <div class="collapsible">🍎 Apple Inc. (AAPL)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> April 1, 1976</p>
+                <p><strong>Headquarters:</strong> Cupertino, California</p>
+                <p><strong>CEO:</strong> Tim Cook</p>
+                <p>Apple Inc. is one of the world’s largest technology companies by revenue. It is known for creating innovative hardware and software products such as the iPhone, iPad, Mac, Apple Watch, and its services including iCloud and Apple Music. The company is also investing heavily in augmented reality and AI development.
+                    🔹 Iconic tech brand behind the iPhone 📱, Mac 💻, iPad, and Apple Watch ⌚
+                    🔹 Known for sleek design, premium hardware, and a seamless ecosystem
+                    🔹 Major revenue from devices, App Store, services, and wearables
+                    🔹 Highly profitable with a global customer base 🌍
+                </p>
+            </div>
+    
+            <div class="collapsible">🪟 Microsoft Corporation (MSFT)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> 1975</p>
+                <p><strong>CEO:</strong> Satya Nadella</p>
+                <p>Microsoft is a leading global vendor of computer software, hardware for computers, and mobile systems. Its Azure cloud platform is widely used across enterprises, and it continues to dominate with its Windows operating system and Office productivity suite. Microsoft has expanded into AI, gaming (Xbox), and enterprise solutions.
+                    🔹 Software powerhouse (Windows 🖥️, Office 📄, Teams)
+                    🔹 Big player in cloud computing with Azure ☁️
+                    🔹 Expanding in AI 🤖, cybersecurity 🔐, and gaming 🎮
+                    🔹 Key supplier for businesses, governments, and developers worldwide
+                </p>
+            </div>
+    
+            <div class="collapsible">🔍 Alphabet Inc. (GOOGL)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> 2015 (Google 1998)</p>
+                <p><strong>CEO:</strong> Sundar Pichai</p>
+                <p>Alphabet is the parent company of Google, which operates in internet-related services and products including search, advertising, cloud computing, software, and hardware. The company also oversees ventures in self-driving cars (Waymo), life sciences (Verily), and venture capital.
+                    🔹 Parent of Google — leader in search, ads, and YouTube 📹
+                    🔹 Major divisions: Google Cloud ☁️, Waymo 🚗, Verily 🧬
+                    🔹 Innovates in AI, machine learning, and deep tech 🧠
+                    🔹 Revenue powered by data, advertising, and cutting-edge R&D
+                </p>
+            </div>
+    
+            <div class="collapsible">📦 Amazon.com, Inc. (AMZN)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> 1994</p>
+                <p><strong>CEO:</strong> Andy Jassy</p>
+                <p>Amazon began as an online bookstore but has grown to become the largest e-commerce platform globally. Its business spans cloud computing via AWS, entertainment via Prime Video, logistics, groceries (Whole Foods), and smart devices like Alexa.
+                    🔹 Global e-commerce giant 🛒
+                    🔹 Cloud services leader via AWS ☁️
+                    🔹 Diverse business: Prime Video 🎬, smart home (Alexa 🗣️), groceries 🥑
+                    🔹 Known for customer obsession, fast delivery 🚚, and scale
+                </p>
+            </div>
+    
+            <div class="collapsible">👤 Meta Platforms, Inc. (META)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> 2004</p>
+                <p><strong>CEO:</strong> Mark Zuckerberg</p>
+                <p>Meta Platforms, formerly Facebook, focuses on building the metaverse—a shared virtual space. It owns major social platforms like Facebook, Instagram, and WhatsApp and leads research in VR/AR through its Reality Labs division, with the Oculus product line.</p>
+            </div>
+    
+            <div class="collapsible">🚗 Tesla, Inc. (TSLA)</div>
+            <div class="collapsible-content">
+                <p><strong>Founded:</strong> 2003</p>
+                <p><strong>CEO:</strong> Elon Musk</p>
+                <p>Tesla specializes in electric vehicles, energy storage systems, and solar energy solutions. It is known for its innovation in EV technology, autonomous driving software, and energy products like the Powerwall and Solar Roof. Tesla has redefined automotive design and performance.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="about-section" class="section">
+        <div class="card">
+            <h2>About Our Platform</h2>
+            <p><strong>StockPredict AI</strong> is an advanced stock prediction platform driven by artificial intelligence and machine learning.</p>
+            <p>We deliver deep insights using LSTM-based neural networks trained on a wide range of data including historical stock prices, trading volumes, social sentiment analysis, macroeconomic indicators, and more.</p>
+            <ul>
+                <li>📊 Accurate price forecasts for major companies</li>
+                <li>📈 Real-time data visualization and historical trend analysis</li>
+                <li>💹 Supports multiple prediction intervals for short and long-term investors</li>
+                <li>🔎 Dynamic updates based on news and social sentiment</li>
+                <li>🔒 Secure and scalable backend architecture</li>
+            </ul>
+            <p style="margin-top: 20px; font-style: italic; color: #7f8c8d;">Disclaimer: Predictions are generated based on AI algorithms and historical data analysis. Always conduct your own research before making financial decisions.</p>
+        </div>
+    </div>
+    
+    <div id="team-section" class="section">
+        <div class="card">
+            <h2>Our Team</h2>
+            <p>Meet the experts behind our stock prediction technology</p>
+
+            <div class="team-container">
+                <div class="team-member">
+                    <div class="team-avatar">BV</div>
+                    <div class="team-name">Bodla Varshini</div>
+                    <div class="team-role">Chief Data Scientist</div>
+                </div>
+
+                <div class="team-member">
+                    <div class="team-avatar">NCP</div>
+                    <div class="team-name">Navathe Chandana Priya</div>
+                    <div class="team-role">Lead ML Engineer</div>
+                </div>
+
+                <div class="team-member">
+                    <div class="team-avatar">PNS</div>
+                    <div class="team-name">Pyrasani Navya Sindu</div>
+                    <div class="team-role">Financial Analyst</div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <script>
+         
+    
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hide');
+                });
+                
+                // Show the corresponding tab content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.remove('hide');
+            });
+        });
+        
+        // Function to create a dynamic chart with prediction data
+        function createPredictionChart(predictionData) {
+            // Get the chart container
+            const chartContainer = document.querySelector('.chart-container');
+            
+            // Clear any existing content
+            chartContainer.innerHTML = '';
+            
+            if (!predictionData || predictionData.length === 0) {
+                chartContainer.innerHTML = '<div class="chart-placeholder">No prediction data available</div>';
+                return;
+            }
+            
+            // Extract data for chart
+            const dates = predictionData.map(item => item.Date);
+            const prices = predictionData.map(item => parseFloat(item['Predicted Price']));
+            
+            // Find min and max for scaling
+            const minPrice = Math.min(...prices) * 0.98; // Add some padding
+            const maxPrice = Math.max(...prices) * 1.02;
+            const priceRange = maxPrice - minPrice;
+            
+            // Create SVG element with viewBox for better scaling
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', '0 0 1000 400');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            
+            // Create a group for the chart elements
+            const chartGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            chartGroup.setAttribute('transform', 'translate(50, 20)'); // Margin for axes
+            svg.appendChild(chartGroup);
+            
+            // Create gradient definition
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 'areaGradient');
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '0%');
+            gradient.setAttribute('y2', '100%');
+            
+            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('stop-color', '#3498db');
+            stop1.setAttribute('stop-opacity', '0.7');
+            
+            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '100%');
+            stop2.setAttribute('stop-color', '#3498db');
+            stop2.setAttribute('stop-opacity', '0.1');
+            
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+            
+            // Chart dimensions
+            const chartWidth = 900;
+            const chartHeight = 350;
+            
+            // Create points for the path
+            const pointDistance = chartWidth / (predictionData.length - 1);
+            
+            // Create paths
+            let linePath = '';
+            let areaPath = '';
+            
+            // Helper function to scale Y values
+            function scaleY(price) {
+                const percentage = (price - minPrice) / priceRange;
+                // Invert the Y axis (SVG Y axis is inverted)
+                return chartHeight - (percentage * chartHeight);
+            }
+            
+            // Generate path data
+            for (let i = 0; i < prices.length; i++) {
+                const x = i * pointDistance;
+                const y = scaleY(prices[i]);
+                
+                if (i === 0) {
+            linePath = `M ${x},${y}`;
+            areaPath = `M ${x},${y}`;
+
+                } else {
+                    linePath += ` L ${x},${y}`;
+                    areaPath += ` L ${x},${y}`;
+                }
+                
+                // Add point markers
+                const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                point.setAttribute('cx', x);
+                point.setAttribute('cy', y);
+                point.setAttribute('r', 4);
+                point.setAttribute('fill', '#3498db');
+                chartGroup.appendChild(point);
+                
+                // Add hover effect for data points
+                point.addEventListener('mouseenter', (e) => {
+                    const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    tooltip.setAttribute('x', x + 10);
+                    tooltip.setAttribute('y', y - 10);
+                    tooltip.setAttribute('fill', '#2c3e50');
+                    tooltip.setAttribute('font-size', '12px');
+                    tooltip.setAttribute('id', 'price-tooltip');
+                    tooltip.textContent = `${dates[i]}: $${prices[i].toFixed(2)}`;
+                    chartGroup.appendChild(tooltip);
+                    
+                    e.target.setAttribute('r', 6);
+                    e.target.setAttribute('fill', '#2c3e50');
+                });
+                
+                point.addEventListener('mouseleave', (e) => {
+                    const tooltip = document.getElementById('price-tooltip');
+                    if (tooltip) {
+                        chartGroup.removeChild(tooltip);
+                    }
+                    e.target.setAttribute('r', 4);
+                    e.target.setAttribute('fill', '#3498db');
+                });
+            }
+            
+            // Complete the area path
+            areaPath += ` L ${(prices.length - 1) * pointDistance},${chartHeight} L 0,${chartHeight} Z`;
+            
+            // Create the area path (add it first so it's behind the line)
+            const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            area.setAttribute('d', areaPath);
+            area.setAttribute('fill', 'url(#areaGradient)');
+            area.setAttribute('stroke', 'none');
+            chartGroup.appendChild(area);
+            
+            // Create the line path
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('d', linePath);
+            line.setAttribute('stroke', '#3498db');
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('fill', 'none');
+            chartGroup.appendChild(line);
+            
+            // Draw X axis
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', chartHeight);
+            xAxis.setAttribute('x2', chartWidth);
+            xAxis.setAttribute('y2', chartHeight);
+            xAxis.setAttribute('stroke', '#95a5a6');
+            xAxis.setAttribute('stroke-width', '1');
+            chartGroup.appendChild(xAxis);
+            
+            // Draw Y axis
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', 0);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', 0);
+            yAxis.setAttribute('y2', chartHeight);
+            yAxis.setAttribute('stroke', '#95a5a6');
+            yAxis.setAttribute('stroke-width', '1');
+            chartGroup.appendChild(yAxis);
+            
+            // Add Y-axis labels (price ranges)
+            const yLabels = 5; // Number of labels
+            for (let i = 0; i <= yLabels; i++) {
+                const price = minPrice + (priceRange * i / yLabels);
+                const y = scaleY(price);
+                
+                // Add horizontal grid line
+                const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gridLine.setAttribute('x1', 0);
+                gridLine.setAttribute('y1', y);
+                gridLine.setAttribute('x2', chartWidth);
+                gridLine.setAttribute('y2', y);
+                gridLine.setAttribute('stroke', '#ecf0f1');
+                gridLine.setAttribute('stroke-width', '1');
+                chartGroup.appendChild(gridLine);
+                
+                // Add price label
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', -5);
+                label.setAttribute('y', y + 4); // Adjust for text alignment
+                label.setAttribute('text-anchor', 'end');
+                label.setAttribute('font-size', '12px');
+                label.setAttribute('fill', '#7f8c8d');
+                label.textContent = '$' + price.toFixed(2);
+                chartGroup.appendChild(label);
+            }
+            
+            // Add X-axis labels (dates) - show only some to avoid crowding
+            const dateStep = Math.max(1, Math.floor(predictionData.length / 6));
+            for (let i = 0; i < predictionData.length; i += dateStep) {
+                const x = i * pointDistance;
+                const date = dates[i];
+                
+                // Add date label
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', chartHeight + 20);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '12px');
+                label.setAttribute('fill', '#7f8c8d');
+                label.textContent = date;
+                chartGroup.appendChild(label);
+            }
+            
+            // Add chart title
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            title.setAttribute('x', chartWidth / 2);
+            title.setAttribute('y', -5);
+            title.setAttribute('text-anchor', 'middle');
+            title.setAttribute('font-size', '16px');
+            title.setAttribute('font-weight', 'bold');
+            title.setAttribute('fill', '#2c3e50');
+            title.textContent = 'Stock Price Prediction';
+            chartGroup.appendChild(title);
+            
+            // Add SVG to container
+            chartContainer.appendChild(svg);
+        }
+
+        // Function to get starting price based on ticker
+        function getStartPrice(ticker) {
+            const prices = {
+                'AAPL': 172.50,
+                'MSFT': 315.75,
+                'GOOGL': 142.30,
+                'AMZN': 132.80,
+                'META': 325.40,
+                'TSLA': 215.65
+            };
+            return prices[ticker] || 100;
+        }
+
+        // Function to create the prediction table
+        function createPredictionTable(predictionData) {
+            // Create table rows
+            const tableBody = document.getElementById('predictionTableBody');
+            tableBody.innerHTML = '';
+            
+            predictionData.forEach((prediction, i) => {
+                const row = document.createElement('tr');
+                if (prediction.isTargetDate) {
+                    row.classList.add('highlighted');
+                }
+                
+                // Add date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = prediction.Date;
+                row.appendChild(dateCell);
+                
+                // Add price cell
+                const priceCell = document.createElement('td');
+                priceCell.textContent = '$' + prediction['Predicted Price'].toFixed(2);
+                row.appendChild(priceCell);
+                
+                // Add change cell with trend indicator
+                const changeCell = document.createElement('td');
+                const prevPrice = i > 0 ? predictionData[i-1]['Predicted Price'] : prediction['Predicted Price'];
+                const change = prediction['Predicted Price'] - prevPrice;
+                const changePercent = (change / prevPrice * 100).toFixed(2);
+                
+                const trend = document.createElement('span');
+                trend.classList.add('trend-indicator');
+                
+                if (change >= 0) {
+                    trend.classList.add('up');
+                    trend.textContent = '▲ ' + changePercent + '%';
+                } else {
+                    trend.classList.add('down');
+                    trend.textContent = '▼ ' + Math.abs(changePercent) + '%';
+                }
+                
+                changeCell.appendChild(trend);
+                row.appendChild(changeCell);
+                tableBody.appendChild(row);
+            });
+        }
+        // Function to generate random prediction data for daily predictions 
+function generateDailyPredictionData(ticker, months, specificDate = null) {
+    const startPrice = getStartPrice(ticker);
+    const data = [];
+    const dailyVolatility = 0.01; // 1% daily volatility
+    let currentPrice = startPrice;
+    
+    const today = new Date();
+    // Calculate total days to generate (approx. 21 trading days per month)
+    const tradingDaysPerMonth = 21;
+    const totalDays = months * tradingDaysPerMonth;
+    
+    // If specificDate is provided, convert it to a Date object
+    const targetDate = specificDate ? new Date(specificDate) : null;
+    
+    for (let i = 0; i <= totalDays; i++) {
+        // Skip weekends (rough approximation - only for display purposes)
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        // Skip weekends (Saturday = 6, Sunday = 0)
+        if (date.getDay() === 6 || date.getDay() === 0) {
+            continue;
+        }
+        
+        // Format date as MM/DD/YYYY
+        const formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+        
+        // Check if this date matches the target date exactly (if target date provided)
+        const isTargetDay = targetDate && 
+                            date.getDate() === targetDate.getDate() && 
+                            date.getMonth() === targetDate.getMonth() && 
+                            date.getFullYear() === targetDate.getFullYear();
+        
+        // Add starting price for current day
+        if (i === 0) {
+            data.push({
+                Date: formattedDate,
+                'Predicted Price': currentPrice,
+                isTargetDate: isTargetDay
+            });
+            continue;
+        }
+        
+        // Generate random price movement
+        const change = (Math.random() - 0.3) * dailyVolatility; // Slight upward bias
+        currentPrice = currentPrice * (1 + change);
+        
+        // Add some trend based on ticker
+        if (ticker === 'AAPL' || ticker === 'MSFT') {
+            currentPrice *= 1.001; // Small daily upward bias for these tickers
+        }
+        
+        data.push({
+            Date: formattedDate,
+            'Predicted Price': currentPrice,
+            isTargetDate: isTargetDay
+        });
+    }
+    
+    return data;
+}
+
+
+// Function to generate prediction for specific date (daily granularity)
+function generateDateDailyPrediction(ticker, specificDate) {
+    const startPrice = getStartPrice(ticker);
+    const data = [];
+    const dailyVolatility = 0.01; // 1% daily volatility
+    let currentPrice = startPrice;
+    
+    const today = new Date();
+    const targetDate = new Date(specificDate);
+    
+    // Calculate days difference
+    const daysDiff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+    
+    // Generate enough daily data to reach the target date, minimum 21 days (about a month)
+    const daysToGenerate = Math.max(21, daysDiff + 5);
+    
+    for (let i = 0; i <= daysToGenerate; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        // Skip weekends (Saturday = 6, Sunday = 0)
+        if (date.getDay() === 6 || date.getDay() === 0) {
+            continue;
+        }
+        
+        // Format date as MM/DD/YYYY
+        const formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+        
+        // Generate random price movement
+        if (i > 0) {
+            const change = (Math.random() - 0.3) * dailyVolatility;
+            currentPrice = currentPrice * (1 + change);
+            
+            // Add some trend based on ticker
+            if (ticker === 'AAPL' || ticker === 'MSFT') {
+                currentPrice *= 1.001;
+            }
+        }
+        
+        // Check if this date matches the target date exactly
+        const isTargetDay = date.getDate() === targetDate.getDate() && 
+                          date.getMonth() === targetDate.getMonth() && 
+                          date.getFullYear() === targetDate.getFullYear();
+        
+        data.push({
+            Date: formattedDate,
+            'Predicted Price': currentPrice,
+            isTargetDate: isTargetDay
+        });
+    }
+    
+    return data;
+}
+
+
+        // Function to generate prediction for specific date
+        function generateDatePrediction(ticker, specificDate) {
+            const startPrice = getStartPrice(ticker);
+            const data = [];
+            const volatility = 0.05; // 5% monthly volatility
+            let currentPrice = startPrice;
+            
+            const today = new Date();
+            const targetDate = new Date(specificDate);
+            const monthsDiff = (targetDate.getFullYear() - today.getFullYear()) * 12 + 
+                              (targetDate.getMonth() - today.getMonth());
+            
+            // Generate enough monthly data to reach the target date
+            const monthsToGenerate = Math.max(3, monthsDiff + 1);
+            
+            for (let i = 0; i <= monthsToGenerate; i++) {
+                const date = new Date(today);
+                date.setMonth(today.getMonth() + i);
+                
+                // Format date as MM/YYYY
+                const formattedDate = (date.getMonth() + 1) + '/' + date.getFullYear();
+                
+                // Generate random price movement (-5% to +5%)
+                if (i > 0) {
+                    const change = (Math.random() - 0.3) * volatility;
+                    currentPrice = currentPrice * (1 + change);
+                    
+                    // Add some trend based on ticker
+                    if (ticker === 'AAPL' || ticker === 'MSFT') {
+                        currentPrice *= 1.01;
+                    }
+                }
+                
+                // Check if this month matches the target date's month and year
+                const isTargetMonth = date.getMonth() === targetDate.getMonth() && 
+                                    date.getFullYear() === targetDate.getFullYear();
+                
+                data.push({
+                    Date: formattedDate,
+                    'Predicted Price': currentPrice,
+                    isTargetDate: isTargetMonth
+                });
+            }
+            
+            return data;
+        }
+        // Event handler for the range prediction button
+document.getElementById('generate-range').addEventListener('click', function() {
+    const ticker = document.getElementById('ticker-range').value;
+    const months = parseInt(document.getElementById('time-range').value);
+    
+    // Validate inputs
+    if (!ticker) {
+        alert('Please select a stock ticker');
+        return;
+    }
+    
+    if (!months) {
+        alert('Please select a time period');
+        return;
+    }
+    
+    // Generate daily prediction data
+    const predictionData = generateDailyPredictionData(ticker, months);
+    
+    // Create the chart and table
+    createPredictionChart(predictionData);
+    createPredictionTable(predictionData);
+});
+// Event handler for the specific date prediction button
+document.getElementById('generate-date').addEventListener('click', function() {
+    const ticker = document.getElementById('ticker-date').value;
+    const specificDate = document.getElementById('specific-date').value;
+    
+    // Validate inputs
+    if (!ticker) {
+        alert('Please select a stock ticker');
+        return;
+    }
+    
+    if (!specificDate) {
+        alert('Please select a specific date');
+        return;
+    }
+    
+    // Generate prediction data with specific date highlighted
+    const predictionData = generateDateDailyPrediction(ticker, specificDate);
+    
+    // Create the chart and table
+    createPredictionChart(predictionData);
+    createPredictionTable(predictionData);
+});
+        // Set minimum date for specific date input to today
+        const today = new Date();
+        const formattedDate = today.toISOString().substr(0, 10);
+        document.getElementById('specific-date').setAttribute('min', formattedDate);
+        
+        // Set a default date 3 months from now
+        const defaultDate = new Date();
+        defaultDate.setMonth(today.getMonth() + 3);
+        document.getElementById('specific-date').value = defaultDate.toISOString().substr(0, 10);
+
+          // Toggle collapsible sections
+          document.querySelectorAll('.collapsible').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        // Handle section switching based on navbar click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+                const targetId = this.getAttribute('href');
+                const target = document.querySelector(targetId);
+                if (target) target.classList.add('active');
+
+                // Hide main content container if navigating away
+                document.querySelector('.container').style.display = targetId === '#predict-section' ? 'block' : 'none';
+            });
+        });
+        // Initialize sections - hide all except predict
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide all sections except predict section at start
+    document.querySelectorAll('.section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show navbar links and setup click handlers
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links
+            document.querySelectorAll('.nav-links a').forEach(l => {
+                l.classList.remove('active');
+            });
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            const targetId = this.getAttribute('href');
+            
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Hide/show main container
+            document.querySelector('.container').style.display = 
+                (targetId === '#predict-section') ? 'block' : 'none';
+            
+            // Show target section if not predict-section
+            if (targetId !== '#predict-section') {
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+            }
+        });
+    });
+});
+
+
+function renderAnalystOpinion(opinion) {
+    const section = document.getElementById("opinion-section");
+    if (!section || !opinion) return;
+
+    section.innerHTML = `
+        <div class="analyst-opinion-box">
+            <div class="opinion-header">
+                <span>Analyst Recommendation</span>
+                <span class="recommendation-badge ${opinion.recommendation.toLowerCase()}">${opinion.recommendation}</span>
+            </div>
+            <div class="opinion-chart">
+                <div class="opinion-bar buy" style="width: ${opinion.buy}%;">Buy (${opinion.buy}%)</div>
+                <div class="opinion-bar hold" style="width: ${opinion.hold}%;">Hold (${opinion.hold}%)</div>
+                <div class="opinion-bar sell" style="width: ${opinion.sell}%;">Sell (${opinion.sell}%)</div>
+            </div>
+            <div class="opinion-summary">
+                This recommendation is based on predicted price trends and change over the selected period.
+            </div>
+            <canvas id="opinionPieChart" width="400" height="400"></canvas>
+        </div>
+    `;
+
+    const ctx = document.getElementById("opinionPieChart").getContext("2d");
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Buy', 'Hold', 'Sell'],
+            datasets: [{
+                data: [opinion.buy, opinion.hold, opinion.sell],
+                backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 14 }
+                    }
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+}
+
+
+</script>
+       
+</body>
+</html>
